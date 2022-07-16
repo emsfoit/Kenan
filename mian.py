@@ -74,11 +74,16 @@ class Battery:  # check the power drwan/feeded to the grid
 
                 print('charge (95-self.soc)*1.22')
 
-
         elif self.soc > 15 and power < 0:
             experiment = pybamm.Experiment([f"discharge at {- power / capcity_factor} W for 15 m"])
             print('discharge')
-        elif self.soc < 15 and power < 0:
+        elif 10 < self.soc <= 15 and power < 0:
+            charge_new=power/capcity_factor
+            grid_energy=(charge_new-(10-self.soc))*5
+            experiment = pybamm.Experiment([f"discharge at {(10-self.soc)} W for 15 m"])
+            print('discharge')
+            
+        elif self.soc < 10 and power < 0:
             experiment = pybamm.Experiment(["Rest for 15 m"])
             print('Rest')
             grid_energy = power
@@ -86,10 +91,7 @@ class Battery:  # check the power drwan/feeded to the grid
             experiment = pybamm.Experiment(["Rest for 15 m"])
             print('Rest')
             grid_energy = power
-        # time_passed = self.env.now - self.last_update
-
         i = +1
-
         sim = pybamm.Simulation(self.model, parameter_values=self.parameter_values, experiment=experiment)
         self.last_solution = sim.solve(starting_solution=self.last_solution, save_at_cycles=i)
         print(f'len(self.last_solution.cycles):{len(self.last_solution.cycles)}')
